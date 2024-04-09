@@ -83,13 +83,3 @@ class BoardLogic:
 
 
 
-board = Board()
-
-board.set_idx(0 , 0, 1)
-board.set_idx(0 , 1, 2)
-board.set_idx(0 , 2, 2)
-board.set_idx(0 , 2, 3)
-board.set_idx(1 ,1 , 3)
-
-board.display()
-
