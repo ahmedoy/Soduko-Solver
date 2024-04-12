@@ -2,6 +2,7 @@ class Board:
     rows = 9
     columns = 9
     empty_slot = "0"
+    value_domain = (1,2,3,4,5,6,7,8,9)
     def __init__(self):
         self.state = self.empty_slot * (self.rows * self.columns) #initially board state is fully blank
 
