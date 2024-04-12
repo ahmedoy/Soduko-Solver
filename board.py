@@ -42,6 +42,40 @@ class BoardLogic:
         state = state[:i*Board.columns+j] + str(value) + state[i*Board.columns+j+1:]
         return state
     
+
+    @staticmethod
+    def get_related_positions(row: int, col:int): #Returns a list of positions that cannot have same value as the given position
+        related_positions = []
+
+        #Positions Related by row constraint
+        for row_2 in range(Board.rows):
+            if row_2 != row:
+                related_positions.append((row_2, col))
+        
+        #Positions Related by column constraint
+        for col_2 in range(Board.columns):
+            if col_2 != col:
+               related_positions.append((row, col_2))
+
+        #Positions Related by 3x3 grid constraint
+        grid_row_start = (row//3) * 3
+        grid_row_end = grid_row_start + 3
+        grid_col_start = (col//3) * 3
+        grid_col_end = grid_col_start + 3
+
+        for row_2 in range(grid_row_start, grid_row_end):
+            for col_2 in range(grid_col_start, grid_col_end):
+                if row_2 == row and col_2==col:
+                    continue
+                elif (row_2, col_2) in related_positions:
+                    continue
+                else:
+                    related_positions.append((row_2, col_2))
+
+        return related_positions
+
+
+    
     @staticmethod
     def check_valid_move(state: str, i: int, j: int, value: int) -> bool:
         value = str(value)
@@ -49,13 +83,13 @@ class BoardLogic:
         #Check Row Constraint
         for k in range(0, Board.columns):
             if BoardLogic.get_idx(state, i, k) == value:
-                print("Row Const.")
+                print("Row Constraint")
                 return False
             
         #Check Column Constraint
         for k in range(0, Board.rows):
             if BoardLogic.get_idx(state, k, j) == value:
-                print("Column Const.")
+                print("Column Constraint")
                 return False
             
         #3x3 grid constraint
@@ -67,7 +101,7 @@ class BoardLogic:
         for i_grid in range(grid_row_start, grid_row_end):
             for j_grid in range(grid_col_start, grid_col_end):
                 if BoardLogic.get_idx(state, i_grid, j_grid) == value:
-                    print("Grid Const.")
+                    print("Grid Constraint")
                     return False
                 
             
