@@ -1,4 +1,5 @@
 from collections import deque
+from typing import List
 from board import Board, BoardLogic
 
 class Variable:
@@ -13,6 +14,13 @@ class Variable:
         self.domain = domain
         self.row = row
         self.col = col
+    
+    def assign_index(self, var_list_idx): #used to assign index to the variable within Variables.variables_list
+        self.var_list_idx = var_list_idx
+
+    def partially_assign(self, temp_value): #partially assigns a value to variable
+        self.temp_value = temp_value
+
 
     def print_variable(self):
         print(f"Row: {self.row}, Column: {self.col}, Domain: {self.domain}")
@@ -20,7 +28,7 @@ class Variable:
 
 class Variables:
     def __init__(self, initial_board: Board):
-        self.variables_list = [] #Create 2d list of variables
+        self.variables_list = [] #Create list of variables    
         for i in range(Board.rows):
             for j in range(Board.columns):
                 if initial_board.get_idx(i, j) == Board.empty_slot:# if variable is unassigned
@@ -28,6 +36,8 @@ class Variables:
 
                 else: #if variable is assigned
                    self.variables_list.append(Variable(assigned=True, domain=(int(initial_board.get_idx(i, j)), ), row=i, col=j))  
+
+                self.variables_list[-1].assign_index(len(self.variables_list)-1) #Assign index to last variable added (used in backtracking)
 
     def get_var(self, row, col):
         return self.variables_list[row * Board.columns + col]
@@ -113,5 +123,65 @@ class AC_3:  #Arc Consistency Algorithm
         #Update domain of var1
         arc.var1.domain = new_var1_domain
         return revised
+    
 
+
+
+class Backtracking:
+
+    @staticmethod
+    def Backtracking_Search(variables: Variables):
+        result = Backtracking.Backtrack(variables, var_idx=0) #var_idx = 0 starts backtracking search with first variable (top left corner)
+
+        #Can remove this step to improve performance
+        state_string = "" 
+        if result: #If result is true convert partial/temp assignments into permanent assignments
+            for variable in variables.variables_list:
+                variable.domain = (variable.temp_value,) #Set domain to a tuple of a single value
+                state_string += str(variable.temp_value)
+            return state_string
+
+        return False
+
+    @staticmethod
+    def Backtrack(variables: Variables, var_idx):
+        if var_idx == len(variables.variables_list): #if all variables assigned without failure
+            return True
+        
+        current_variable = variables.variables_list[var_idx]
+        related_var_positions = BoardLogic.get_related_positions(current_variable.row, current_variable.col)
+
+        for current_value in current_variable.domain:
+            consistent_flag = True #if still true after for loop then value is consistent
+            for related_var_position in related_var_positions:
+                related_var = variables.get_var(related_var_position[0], related_var_position[1])
+                
+                #Need to conisder 2 cases
+                #Case 1: Assigned Variables that out current assignment would be inconsistent with
+                #Case 2: Partially/Temporarily Assigned Variables that out current assignment would be inconsistent with
+
+                #Case 1
+                if related_var.assigned: 
+                    if related_var.domain[0] == current_value:
+                        consistent_flag = False
+                        break
+
+                #Case 2
+                elif related_var.var_list_idx < current_variable.var_list_idx:
+                    if related_var.temp_value == current_value:
+                        consistent_flag = False
+                        break
+
+            if consistent_flag:
+                current_variable.partially_assign(current_value)
+                result = Backtracking.Backtrack(variables, var_idx=var_idx+1) #Move to next variable in Backtracking
+                if result: #result == True (solution found)
+                    return result
+
+        return False
+
+
+
+
+       
 
