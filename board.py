@@ -12,14 +12,20 @@ class Board:
     def get_idx(self, i:int , j:int): # Returns value at index i,j
         return BoardLogic.get_idx(self.state, i, j)
     
-    def set_idx(self, i:int, j:int, value: int): # Sets the value at position i,j in the board
+    def set_idx_val(self, i:int, j:int, value: int): # Sets the value at position i,j in the board but also does certain validations first
         if self.get_idx(i, j) != self.empty_slot:
             return
         if BoardLogic.check_valid_move(self.state, i, j, value): #Checks if the value to be inserted satisfies all constraints
             self.state = BoardLogic.set_idx(self.state, i , j, value)
+    
+    def set_idx(self, i:int, j:int, value: int): # Sets the value at position i,j in the board without any validations
+        self.state = BoardLogic.set_idx(self.state, i , j, value)
 
     def display(self):
-        BoardLogic.display_board(self.state)
+        BoardLogic.display_board2(self.state)
+
+    def display2(self):
+        BoardLogic.display_board2(self.state)
 
 
 
@@ -41,8 +47,7 @@ class BoardLogic:
     def set_idx(state: str, i: int, j: int, value: int) -> str:
         state = state[:i*Board.columns+j] + str(value) + state[i*Board.columns+j+1:]
         return state
-    
-
+        
     @staticmethod
     def get_related_positions(row: int, col:int): #Returns a list of positions that cannot have same value as the given position
         related_positions = []
@@ -112,7 +117,16 @@ class BoardLogic:
     @staticmethod
     def display_board(state: str):
         for i in range(Board.rows):
-            print(state[Board.columns*i:Board.columns*(i+1)])  
+            print(state[Board.columns*i:Board.columns*(i+1)])
+
+    @staticmethod
+    def display_board2(state: str):
+        for i in range(Board.rows):
+            row = state[Board.columns * i: Board.columns * (i + 1)]
+            row_groups = [row[j * 3: (j + 1) * 3] for j in range(3)]
+            print(" | ".join(row_groups))
+            if (i + 1) % 3 == 0 and i < Board.rows - 1:
+                print("-" * 15)  # Print horizontal separator  
 
 
 
