@@ -179,6 +179,49 @@ class Backtracking:
                     return result
 
         return False
+    
+
+    @staticmethod
+    def Backtracking_Search_CountSolutions(variables: Variables): #Only used when generating a soduko board to check for a unique solution        
+        count = Backtracking.Backtrack_CountSolutions(variables, var_idx=0) #var_idx = 0 starts backtracking search with first variable (top left corner)
+        return count 
+    
+    @staticmethod
+    def Backtrack_CountSolutions(variables: Variables, var_idx): #Only used when generating a soduko board to check for a unique solution
+        if var_idx == len(variables.variables_list): #if all variables assigned without failure
+            return 1
+        
+        current_variable = variables.variables_list[var_idx]
+        related_var_positions = BoardLogic.get_related_positions(current_variable.row, current_variable.col)
+        count = 0
+
+        for current_value in current_variable.domain:
+            consistent_flag = True #if still true after for loop then value is consistent
+            for related_var_position in related_var_positions:
+                related_var = variables.get_var(related_var_position[0], related_var_position[1])
+                
+                #Need to conisder 2 cases
+                #Case 1: Assigned Variables that out current assignment would be inconsistent with
+                #Case 2: Partially/Temporarily Assigned Variables that out current assignment would be inconsistent with
+
+                #Case 1
+                if related_var.assigned: 
+                    if related_var.domain[0] == current_value:
+                        consistent_flag = False
+                        break
+
+                #Case 2
+                elif related_var.var_list_idx < current_variable.var_list_idx:
+                    if related_var.temp_value == current_value:
+                        consistent_flag = False
+                        break
+
+            if consistent_flag:
+                current_variable.partially_assign(current_value)
+                count += Backtracking.Backtrack_CountSolutions(variables, var_idx=var_idx+1) #Move to next variable in Backtracking
+                
+
+        return count
 
 
 
