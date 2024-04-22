@@ -32,6 +32,15 @@ def create_grid():
         y1 = MARGIN + i * CELL_SIZE 
         canvas.create_line(x0, y0, x1, y1, fill=color)
         print("Ana hena")
+    create_grid_buttons()
+
+def create_grid_buttons():
+    for i in range(9):
+        for j in range(9):
+            x = MARGIN + i * CELL_SIZE + SIDE_MARGIN 
+            y = MARGIN + j * CELL_SIZE + (1/2 * CELL_SIZE)
+            canvas.create_window(x, y, window=tk.Button(window, text="1", bg="#c4bebe", fg="black", width=2, height=2))
+            
 
      
 def mode_1():
