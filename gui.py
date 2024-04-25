@@ -1,6 +1,7 @@
 from tkinter import Tk
 from tkinter import Canvas
-from tkinter import Image
+from tkinter import simpledialog
+from tkinter import messagebox
 from PIL import ImageTk
 import tkinter as tk
 
@@ -47,10 +48,13 @@ def initialize_board(initial_state):
             edit_cell(initial_state[i])
             BUTTONS[col][row].config(state="disabled")
             BUTTONS[col][row].config(bg="#4d4d4d", font = ("Helvetica", 12, "bold"))
+        else:
+            edit_cell("")
+            BUTTONS[col][row].config(state="normal")
+            BUTTONS[col][row].config(bg="#d9d9d9", font = ("Helvetica", 10, "normal"))
 
 def create_grid():
     # Create a 9x9 grid
-    global ROW, COLUMN
     for i in range(10):
         color = "black" if i % 3 == 0 else "gray"
         #vertical lines
@@ -69,21 +73,15 @@ def create_grid():
         print("Ana hena")
     create_grid_buttons()
     create_input_buttons()
-    initialize_board("".join(["700009050",
-                 "040050700",
-                 "003000010",
-                 "208160000",
-                 "000308000",
-                 "000027108",
-                 "080000500",
-                 "009010030",
-                 "060200004"]))
-    ROW, COLUMN = -1, -1
 
+def initializer(state):
+    global ROW, COLUMN
+    initialize_board(state)
+    ROW, COLUMN = -1, -1
 
 def create_window():
     create_grid()
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3, window=tk.Button(window, text="HINT", command=show_hint_system, bg="#c4bebe", fg="black", width=10))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3, window=tk.Button(window, text="HINT", command=show_hint_system, bg="#c4bebe", fg="black", width=20))
 
 def change_highlights():
     BUTTONS[ROW][COLUMN].config(highlightthickness = 0)
@@ -114,18 +112,47 @@ def create_grid_buttons():
             BUTTONS[i][j] = tk.Button(window, text=" ", bg="#d9d9d9", fg="black", width=2, height=2, command=lambda i=i, j=j: highlight_input_buttons(i, j))
             canvas.create_window(x, y, window=BUTTONS[i][j])
 
+def own_board_generator():
+    USER_INP = simpledialog.askstring(title="Board",
+                                  prompt="Enter Your Board Row by ROW :)")
+    if USER_INP:
+        if len(USER_INP) == 9*9:
+            initializer(USER_INP)
+        else:
+            messagebox.showinfo("Take Care", "The state isn't 9x9")
+
      
 def mode_1():
     erase_canvas()
     create_window()
+    initializer("".join(["700009050",
+                 "040050700",
+                 "003000010",
+                 "208160000",
+                 "000308000",
+                 "000027108",
+                 "080000500",
+                 "009010030",
+                 "060200004"]))
     
 def mode_2():
     erase_canvas()
     create_window()
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
 
 def mode_3():
     erase_canvas()
     create_window()
+    initializer("".join(["700009050",
+                 "040050700",
+                 "003000010",
+                 "208160000",
+                 "000308000",
+                 "000027108",
+                 "080000500",
+                 "009010030",
+                 "060200004"]))
+    ### interactive here!!!!!!!!
 
 
 # Create the main window
