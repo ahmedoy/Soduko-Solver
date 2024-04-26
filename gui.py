@@ -26,9 +26,27 @@ INPUT_BUTTONS = [0] * 9
 
 new_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
 state = new_board.state
+show_hint = True
 
 def show_hint_system():
-    pass
+    global ROW , COLUMN, show_hint
+    if show_hint:
+        for idx in range(81):
+            ROW = idx // 9
+            COLUMN = idx % 9
+            available_values = new_board.get_available_values(ROW, COLUMN)
+            if len(available_values) and state[idx] == "0":
+                available_values_str = "\n".join([" ".join(available_values[0][i:i+3]) for i in range(0, len(available_values[0]), 3)])
+                BUTTONS[COLUMN][ROW].config(text=available_values_str, font=("Helvetica", 6, "normal"))
+        show_hint = False
+    else:
+        for idx in range(81):
+            ROW = idx // 9
+            COLUMN = idx % 9
+            if state[idx] == "0":
+                BUTTONS[COLUMN][ROW].config(text="", font=("Helvetica", 10, "normal"))
+        show_hint = True
+
 
 def erase_canvas():
     canvas.delete("all")
@@ -45,6 +63,7 @@ def edit_cell(text):
 def initialize_board(initial_state):
     '''Initialize board with numbers of the initial state of the game'''
     global ROW, COLUMN
+    new_board.state = initial_state
     for i in range(len(initial_state)):
         row = i // 9
         col = i % 9
