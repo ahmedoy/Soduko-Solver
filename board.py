@@ -5,7 +5,12 @@ class Board:
     value_domain = (1,2,3,4,5,6,7,8,9)
     def __init__(self):
         self.state = self.empty_slot * (self.rows * self.columns) #initially board state is fully blank
-
+    
+    def is_empty(self):
+        return self.state == self.empty_slot * (self.rows * self.columns)
+    
+    def restart(self):
+        self.state = self.empty_slot * (self.rows * self.columns)
     def check_game_end(self):
         return BoardLogic.check_game_end(self.state)
     
