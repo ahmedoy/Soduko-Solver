@@ -27,19 +27,33 @@ INPUT_BUTTONS = [0] * 9
 new_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
 state = new_board.state
 
+GUI_INPUT_STATE = "Solving" #Equals solving if the user's input is treated as a solution and equals "Entering" if the user's input is treated as the soduko puzzle definition
+
 def show_hint_system():
     pass
 
 def erase_canvas():
+    global state
+    state = None
     canvas.delete("all")
 
 def edit_cell(text):
-    '''Edit a cell in the board'''
-    if ROW != -1 and COLUMN != -1:
-         BUTTONS[ROW][COLUMN].config(text=text)
-    for i in range(9):
-        INPUT_BUTTONS[i].config(bg="#d9d9d9")
-    BUTTONS[ROW][COLUMN].config(highlightthickness=0)
+    if(GUI_INPUT_STATE == "Entering"):
+        '''Edit a cell in the board'''
+        if ROW != -1 and COLUMN != -1:
+            BUTTONS[ROW][COLUMN].config(text=text)
+            BUTTONS[ROW][COLUMN].config(bg="#4d4d4d", font = ("Helvetica", 12, "bold"))
+        for i in range(9):
+            INPUT_BUTTONS[i].config(bg="#d9d9d9")
+        BUTTONS[ROW][COLUMN].config(highlightthickness=0)
+    
+    else:
+        '''Edit a cell in the board'''
+        if ROW != -1 and COLUMN != -1:
+            BUTTONS[ROW][COLUMN].config(text=text)
+        for i in range(9):
+            INPUT_BUTTONS[i].config(bg="#d9d9d9")
+        BUTTONS[ROW][COLUMN].config(highlightthickness=0)
 
 
 def initialize_board(initial_state):
@@ -133,32 +147,39 @@ def create_grid_buttons():
             canvas.create_window(x, y, window=BUTTONS[i][j])
 
 def own_board_generator():
-    USER_INP = simpledialog.askstring(title="Board",
-                                  prompt="Enter Your Board Row by Row :)")
-    if USER_INP:
-        if len(USER_INP) == 9*9:
-            initializer(USER_INP)
-        else:
-            messagebox.showinfo("Take Care", "The state isn't 9x9")
+    global GUI_INPUT_STATE
+    GUI_INPUT_STATE = "Entering"
+
+def generate_board_randomly(): #AI generates a new board
+    global state
+    temp_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
+    state = temp_board.state
+    initializer(state)
+
 
 def solved_board():
+    global GUI_INPUT_STATE
+    if state == None:
+        messagebox.showinfo("Take Care", "Please generate a board first")
+        return
+    GUI_INPUT_STATE = "Solving"
     test_board = Board()
     test_board.state = state
+    test_board.display()
     vars = Variables(test_board)
     AC_3.AC_3(vars)
     test_board.state = Backtracking.Backtracking_Search(vars)
     generate_solved_board(test_board.state)
 
 
-def generate_board_randomly():
-    initializer(state)
+# def generate_board_randomly():
+#     initializer(state)
 
 def mode_1(): #Generated and solved by AI
     erase_canvas()
     create_window()
-    initializer(state)
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
-
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate", command=generate_board_randomly, bg="#c4bebe", fg="black", width=20))
     
 def mode_2(): #Input by human and solved by AI
     erase_canvas()
