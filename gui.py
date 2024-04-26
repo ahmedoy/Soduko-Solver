@@ -4,6 +4,7 @@ from tkinter import simpledialog
 from tkinter import messagebox
 from PIL import ImageTk
 import tkinter as tk
+from generator import BoardGenerator
 
 # Constants
 WIDTH = 950
@@ -20,6 +21,9 @@ rows, cols = 9, 9
 BUTTONS = [[0] * cols for _ in range(rows)]
 
 INPUT_BUTTONS = [0] * 9
+
+new_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
+state = new_board.state
 
 def show_hint_system():
     pass
@@ -74,9 +78,9 @@ def create_grid():
     create_grid_buttons()
     create_input_buttons()
 
-def initializer(state):
+def initializer(board_state):
     global ROW, COLUMN
-    initialize_board(state)
+    initialize_board(board_state)
     ROW, COLUMN = -1, -1
 
 def create_window():
@@ -121,37 +125,32 @@ def own_board_generator():
         else:
             messagebox.showinfo("Take Care", "The state isn't 9x9")
 
-     
-def mode_1():
+def generate_solved_board():
+    pass 
+
+def generate_board_randomly():
+    initializer(state)
+
+def mode_1(): #Generated and solved by AI
     erase_canvas()
     create_window()
-    initializer("".join(["700009050",
-                 "040050700",
-                 "003000010",
-                 "208160000",
-                 "000308000",
-                 "000027108",
-                 "080000500",
-                 "009010030",
-                 "060200004"]))
+    initializer(state)
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=generate_solved_board, bg="#c4bebe", fg="black", width=20))
+
     
-def mode_2():
+def mode_2(): #Input by human and solved by AI
     erase_canvas()
     create_window()
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Solve", command=generate_solved_board, bg="#c4bebe", fg="black", width=20))
 
-def mode_3():
+def mode_3(): #AI generated or Human input board and solved interactively
     erase_canvas()
     create_window()
-    initializer("".join(["700009050",
-                 "040050700",
-                 "003000010",
-                 "208160000",
-                 "000308000",
-                 "000027108",
-                 "080000500",
-                 "009010030",
-                 "060200004"]))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate Board Randomly", command=generate_board_randomly, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
+
+
     ### interactive here!!!!!!!!
 
 
