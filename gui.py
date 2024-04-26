@@ -5,6 +5,8 @@ from tkinter import messagebox
 from PIL import ImageTk
 import tkinter as tk
 from generator import BoardGenerator
+from solver import Variables, AC_3, Backtracking 
+from board import Board
 
 # Constants
 WIDTH = 950
@@ -56,6 +58,20 @@ def initialize_board(initial_state):
             edit_cell("")
             BUTTONS[col][row].config(state="normal")
             BUTTONS[col][row].config(bg="#d9d9d9", font = ("Helvetica", 10, "normal"))
+
+def generate_solved_board(final_state):
+    '''Generation of board after solution'''
+    global ROW, COLUMN
+    for i in range(len(final_state)):
+        row = i // 9
+        col = i % 9
+        ROW = col
+        COLUMN = row
+        if final_state[i] != "0":
+            edit_cell(final_state[i])
+            BUTTONS[col][row].config(state="disabled")
+            BUTTONS[col][row].config(fg="black", font = ("Helvetica", 12, "bold"))
+
 
 def create_grid():
     # Create a 9x9 grid
@@ -118,15 +134,21 @@ def create_grid_buttons():
 
 def own_board_generator():
     USER_INP = simpledialog.askstring(title="Board",
-                                  prompt="Enter Your Board Row by ROW :)")
+                                  prompt="Enter Your Board Row by Row :)")
     if USER_INP:
         if len(USER_INP) == 9*9:
             initializer(USER_INP)
         else:
             messagebox.showinfo("Take Care", "The state isn't 9x9")
 
-def generate_solved_board():
-    pass 
+def solved_board():
+    test_board = Board()
+    test_board.state = state
+    vars = Variables(test_board)
+    AC_3.AC_3(vars)
+    test_board.state = Backtracking.Backtracking_Search(vars)
+    generate_solved_board(test_board.state)
+
 
 def generate_board_randomly():
     initializer(state)
@@ -135,14 +157,14 @@ def mode_1(): #Generated and solved by AI
     erase_canvas()
     create_window()
     initializer(state)
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=generate_solved_board, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
 
     
 def mode_2(): #Input by human and solved by AI
     erase_canvas()
     create_window()
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Solve", command=generate_solved_board, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
 
 def mode_3(): #AI generated or Human input board and solved interactively
     erase_canvas()
