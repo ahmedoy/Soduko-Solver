@@ -24,21 +24,20 @@ BUTTONS = [[0] * cols for _ in range(rows)]
 
 INPUT_BUTTONS = [0] * 9
 
-new_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
-state = new_board.state
+game_board = Board()
 
-GUI_INPUT_STATE = "Solving" #Equals solving if the user's input is treated as a solution and equals "Entering" if the user's input is treated as the soduko puzzle definition
+
+GUI_INPUT_STATE = "Solving" #Equals solving if the user's input is treated as a solution and equals "Generating" if the user's input is treated as the soduko puzzle definition
 
 def show_hint_system():
     pass
 
 def erase_canvas():
-    global state
-    state = None
+    game_board.restart()
     canvas.delete("all")
 
 def edit_cell(text):
-    if(GUI_INPUT_STATE == "Entering"):
+    if GUI_INPUT_STATE == "Generating":
         '''Edit a cell in the board'''
         if ROW != -1 and COLUMN != -1:
             BUTTONS[ROW][COLUMN].config(text=text)
@@ -46,14 +45,27 @@ def edit_cell(text):
         for i in range(9):
             INPUT_BUTTONS[i].config(bg="#d9d9d9")
         BUTTONS[ROW][COLUMN].config(highlightthickness=0)
+
+        if type(text) is int:
+            game_board.set_idx(COLUMN, ROW, text)
+        elif text.isdigit():
+            game_board.set_idx(COLUMN, ROW, int(text))
+
     
-    else:
+    elif GUI_INPUT_STATE == "Solving":
         '''Edit a cell in the board'''
         if ROW != -1 and COLUMN != -1:
             BUTTONS[ROW][COLUMN].config(text=text)
         for i in range(9):
             INPUT_BUTTONS[i].config(bg="#d9d9d9")
         BUTTONS[ROW][COLUMN].config(highlightthickness=0)
+        if type(text) is int:
+            game_board.set_idx(COLUMN, ROW, text)
+        elif text.isdigit():
+            game_board.set_idx(COLUMN, ROW, int(text))
+
+    else:
+        messagebox.showinfo("Take Care", "User can't input in this mode")
 
 
 def initialize_board(initial_state):
@@ -148,23 +160,24 @@ def create_grid_buttons():
 
 def own_board_generator():
     global GUI_INPUT_STATE
-    GUI_INPUT_STATE = "Entering"
+    GUI_INPUT_STATE = "Generating"
 
 def generate_board_randomly(): #AI generates a new board
-    global state
-    temp_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
-    state = temp_board.state
-    initializer(state)
+    global game_board, GUI_INPUT_STATE
+    game_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
+    GUI_INPUT_STATE = "Generating"
+    initializer(game_board.state)
+    GUI_INPUT_STATE = "None"
 
 
 def solved_board():
     global GUI_INPUT_STATE
-    if state == None:
+    if game_board.is_empty():
         messagebox.showinfo("Take Care", "Please generate a board first")
         return
     GUI_INPUT_STATE = "Solving"
     test_board = Board()
-    test_board.state = state
+    test_board.state = game_board.state
     test_board.display()
     vars = Variables(test_board)
     AC_3.AC_3(vars)
@@ -176,16 +189,31 @@ def solved_board():
 #     initializer(state)
 
 def mode_1(): #Generated and solved by AI
+    global GUI_INPUT_STATE
+    GUI_INPUT_STATE = "None"
     erase_canvas()
     create_window()
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate", command=generate_board_randomly, bg="#c4bebe", fg="black", width=20))
     
 def mode_2(): #Input by human and solved by AI
+    global GUI_INPUT_STATE
+    GUI_INPUT_STATE = "Generating"
     erase_canvas()
     create_window()
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
+
+    def restart_mode2():
+        global GUI_INPUT_STATE
+        GUI_INPUT_STATE = "Generating"
+        game_board.restart()
+        initializer(game_board.state)
+
+
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Erase", command=restart_mode2, bg="#c4bebe", fg="black", width=20))
+
+
 
 def mode_3(): #AI generated or Human input board and solved interactively
     erase_canvas()
