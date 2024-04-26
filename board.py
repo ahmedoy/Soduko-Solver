@@ -27,6 +27,49 @@ class Board:
     def display2(self):
         BoardLogic.display_board2(self.state)
 
+    def get_available_values(self, row, column):
+        if self.get_idx(row, column) != self.empty_slot:
+            return self.get_idx(row, column) #If the variable is assigned just return its value
+        
+        #If it's not assigned return the values it can take according to different constraints
+        available_row = [str(i) for i in self.value_domain]
+        available_column = [str(i) for i in self.value_domain]
+        available_grid = [str(i) for i in self.value_domain]
+        available_all = None
+
+        #Positions Related by row constraint
+        for col_2 in range(Board.columns):            
+            value = self.get_idx(row, col_2)
+            if value != self.empty_slot:
+                available_row.remove(value)
+
+        #Positions Related by column constraint
+        for row_2 in range(Board.rows):            
+            value = self.get_idx(row_2, column)            
+            if value != self.empty_slot:
+                available_column.remove(value)
+
+
+        #Positions Related by 3x3 grid constraint
+        grid_row_start = (row//3) * 3
+        grid_row_end = grid_row_start + 3
+        grid_col_start = (column//3) * 3
+        grid_col_end = grid_col_start + 3
+
+        for row_2 in range(grid_row_start, grid_row_end):
+            for col_2 in range(grid_col_start, grid_col_end):
+                value = self.get_idx(row_2, col_2)
+                if value != self.empty_slot:
+                    available_grid.remove(value)
+
+        set_row = set(available_row)
+        set_col = set(available_column)
+        set_grid = set(available_grid)
+        available_all = list(set_row.intersection(set_col, set_grid))
+
+        return available_row, available_column, available_grid, available_all
+    
+
 
 
 class BoardLogic:
