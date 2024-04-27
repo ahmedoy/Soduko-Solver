@@ -17,11 +17,14 @@ class Board:
     def get_idx(self, i:int , j:int): # Returns value at index i,j
         return BoardLogic.get_idx(self.state, i, j)
     
-    def set_idx_val(self, i:int, j:int, value: int): # Sets the value at position i,j in the board but also does certain validations first
-        if self.get_idx(i, j) != self.empty_slot:
-            return
+    def set_idx_val(self, i:int, j:int, value: int, replace_non_empty = True): # Sets the value at position i,j in the board but also does certain validations first
+        if self.get_idx(i, j) != self.empty_slot and replace_non_empty == False:
+            return False
         if BoardLogic.check_valid_move(self.state, i, j, value): #Checks if the value to be inserted satisfies all constraints
             self.state = BoardLogic.set_idx(self.state, i , j, value)
+            return True
+        else:
+            return False
     
     def set_idx(self, i:int, j:int, value: int): # Sets the value at position i,j in the board without any validations
         self.state = BoardLogic.set_idx(self.state, i , j, value)
