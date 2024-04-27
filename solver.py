@@ -81,6 +81,7 @@ class AC_3:  #Arc Consistency Algorithm
                     arc_queue.append(arc) 
                     arc_set.add(arc.get_arc_id())
         step_number = 0
+        
         while len(arc_queue) > 0:
             step_number += 1
             if display:

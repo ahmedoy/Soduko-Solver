@@ -7,6 +7,7 @@ import tkinter as tk
 from generator import BoardGenerator
 from solver import Variables, AC_3, Backtracking 
 from board import Board
+from time import time
 
 # Constants
 WIDTH = 950
@@ -70,7 +71,6 @@ def edit_cell(text):
 
     
     elif GUI_INPUT_STATE == "Solving":
-        '''Edit a cell in the board'''
         if ROW != -1 and COLUMN != -1:
             BUTTONS[ROW][COLUMN].config(text=text)
         for i in range(9):
@@ -198,9 +198,13 @@ def own_board_generator():
     global GUI_INPUT_STATE
     GUI_INPUT_STATE = "Generating"
 
+
 def generate_board_randomly(): #AI generates a new board
     global game_board, GUI_INPUT_STATE
-    game_board = BoardGenerator.generate_full_board(unique=False, amount_removed=AMOUNT_REMOVED)
+    start = time()
+    game_board = BoardGenerator.generate_full_board(unique=True, amount_removed=AMOUNT_REMOVED)
+    end = time()
+    print(f"Time taken to generate board in {GUI_DIFFICULTY} level = {end - start}")
     GUI_INPUT_STATE = "Generating"
     initializer(game_board.state)
     GUI_INPUT_STATE = "None"
@@ -216,12 +220,16 @@ def solved_board():
     test_board.state = game_board.state
     test_board.display()
     vars = Variables(test_board)
+    start = time()
     result = AC_3.AC_3(vars)
     if(result == False):
         print("Invalid Input")
         messagebox.showinfo("Invalid Input", "This board has no solution") 
         return
-    result = Backtracking.Backtracking_Search(vars)
+    result = Backtracking.Backtracking_Search(vars) #backtracking used for checking validity of the board and solving it
+    end = time()
+    print(f"Time taken to solve board in {GUI_DIFFICULTY} level = {end - start}")
+
     if(result == False):
         print("Invalid Input")
         messagebox.showinfo("Invalid Input", "This board has no solution")
