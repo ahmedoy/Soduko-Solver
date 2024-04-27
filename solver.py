@@ -66,7 +66,7 @@ class Arc:
 class AC_3:  #Arc Consistency Algorithm
 
     @staticmethod
-    def AC_3(variables: Variables): 
+    def AC_3(variables: Variables, display = True): 
         arc_queue = deque()
         arc_set = set()
 
@@ -80,12 +80,21 @@ class AC_3:  #Arc Consistency Algorithm
                     arc = Arc(var_1, var_2)
                     arc_queue.append(arc) 
                     arc_set.add(arc.get_arc_id())
-
+        step_number = 0
         while len(arc_queue) > 0:
-            popped_arc = arc_queue.popleft()
+            step_number += 1
+            if display:
+                print(f"Step: {step_number}")
+                print(f"Queue Size: {len(arc_queue)}")
+            popped_arc = arc_queue.popleft()            
+            if display:
+                popped_arc.display_arc()
+                print(f"Domains Before: {popped_arc.var1.domain} -> {popped_arc.var2.domain}")
             arc_set.remove(popped_arc.get_arc_id())
             if AC_3.revise(popped_arc):
+
                 if len(popped_arc.var1.domain) == 0:
+                    print("Arc Consistency Failed. No solution Found")
                     return False #No solution found
                 
                 else: #Reinsert variables it is related to into the queue (neighbors)
@@ -100,6 +109,8 @@ class AC_3:  #Arc Consistency Algorithm
                             if new_arc.get_arc_id() not in arc_set:
                                 arc_queue.append(new_arc)
                                 arc_set.add(new_arc.get_arc_id())
+            if display:
+                print(f"Domains After:  {popped_arc.var1.domain} -> {popped_arc.var2.domain}")
 
         return True
     
