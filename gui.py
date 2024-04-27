@@ -246,8 +246,7 @@ def set_difficulty(difficulty):
         mode_1()
     elif MODE == 2:
         mode_2()
-    elif MODE == 3:
-        mode_3()
+
 
 def mode_1(): #Generated and solved by AI
     global GUI_INPUT_STATE, MODE, GUI_DIFFICULTY
@@ -284,18 +283,25 @@ def mode_2(): #Input by human and solved by AI
 
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Erase", command=restart_mode2, bg="#c4bebe", fg="black", width=20))
 
-                                        ##################### Interactive ################################
+                                        ##################### Interactive ##############################
+def set_difficulty_interactive(difficulty):
+    global GUI_DIFFICULTY, AMOUNT_REMOVED, GUI_INPUT_STATE, game_board
+    if difficulty == "easy":
+        AMOUNT_REMOVED = 30
+    elif difficulty == "intermediate":
+        AMOUNT_REMOVED = 40
+    elif difficulty == "hard":
+        AMOUNT_REMOVED = 50
+    game_board = BoardGenerator.generate_full_board(unique=False, amount_removed=AMOUNT_REMOVED)
+    GUI_INPUT_STATE = "Generating"
+    initializer(game_board.state)
+                                            
 def generate_board_randomly_interactive():
-    global game_board, GUI_INPUT_STATE, GUI_DIFFICULTY, AMOUNT_REMOVED
+    global  GUI_DIFFICULTY, AMOUNT_REMOVED
 
-    
-    if GUI_DIFFICULTY != "NONE":
-        game_board = BoardGenerator.generate_full_board(unique=False, amount_removed=AMOUNT_REMOVED)
-        GUI_INPUT_STATE = "Generating"
-        initializer(game_board.state)
-    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 400, window=tk.Button(window, text="Easy", command=lambda difficulty="easy": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
-    canvas.create_window(WIDTH- WIDTH//6.5, HEIGHT//3 + 400, window=tk.Button(window, text="Intermediate", command=lambda difficulty="intermediate": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=8))
-    canvas.create_window(WIDTH- WIDTH//20.5, HEIGHT//3 + 400, window=tk.Button(window, text="Hard", command=lambda difficulty="hard": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
+    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 400, window=tk.Button(window, text="Easy", command=lambda difficulty="easy": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
+    canvas.create_window(WIDTH- WIDTH//6.5, HEIGHT//3 + 400, window=tk.Button(window, text="Intermediate", command=lambda difficulty="intermediate": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=8))
+    canvas.create_window(WIDTH- WIDTH//20.5, HEIGHT//3 + 400, window=tk.Button(window, text="Hard", command=lambda difficulty="hard": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
 
 
 def solved_board_interactive():
