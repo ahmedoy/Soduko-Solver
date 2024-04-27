@@ -76,7 +76,7 @@ def edit_cell(text):
             BUTTONS[ROW][COLUMN].config(text=text)
         for i in range(9):
             INPUT_BUTTONS[i].config(bg="#d9d9d9")
-        BUTTONS[ROW][COLUMN].config(highlightthickness=0)
+        BUTTONS[ROW][COLUMN].config(highlightthickness=0, font=("Helvetica", 12, "normal"), fg="blue")
         if type(text) is int:
             game_board.set_idx(COLUMN, ROW, text)
         elif text.isdigit():
