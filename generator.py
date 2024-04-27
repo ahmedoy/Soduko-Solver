@@ -5,7 +5,7 @@ import random
 class BoardGenerator:
 
     @staticmethod
-    def generate_full_board(unique=False, amount_removed=30): #Use unique if the generated board must have 1 unique solution
+    def generate_full_board(unique=False, amount_to_remove=30): #Use unique if the generated board must have 1 unique solution
         generated_board = Board()
         for i in range(3): #First Fill the 3 (3x3) grids on the diagonal
             grid_row_start = (3*i//3) * 3
@@ -21,7 +21,7 @@ class BoardGenerator:
 
         #Fill all the other empty slots using arc consistency and backracking
         vars = solver.Variables(generated_board)
-        solver.AC_3.AC_3(vars)
+        solver.AC_3.AC_3(vars, display=False)
         generated_board.state = solver.Backtracking.Backtracking_Search(vars)
 
         
@@ -30,14 +30,28 @@ class BoardGenerator:
         random.shuffle(board_positions)
 
         if unique == False:
-            for i in range(amount_removed):
+            for i in range(amount_to_remove):
                 board_position = board_positions.pop()
                 generated_board.set_idx(board_position//9, board_position%9, 0)
             return generated_board
 
         
+        #Generate Unique Solution
+        amount_to_remove = min(60, amount_to_remove) #Prevent more than 60 empty
+        amount_removed = 0        
+        while (amount_removed < amount_to_remove) and (len(board_positions) > 0):
+            board_position = board_positions.pop()
+            prev_val = generated_board.get_idx(board_position//9, board_position%9)
+            generated_board.set_idx(board_position//9, board_position%9, 0)
 
-        #TODO Generate a Soduko puzzle with 1 unique solution (if required)
+            #Test if unique
+            vars = solver.Variables(generated_board)
+            solver.AC_3.AC_3(vars, display=False)
+            if solver.Backtracking.Backtracking_Search_CountSolutions(vars) == 1:
+                amount_removed += 1
+            else:
+                #Put the value back again
+                generated_board.set_idx(board_position//9, board_position%9, prev_val)
 
 
 
@@ -46,7 +60,7 @@ class BoardGenerator:
 
 
 if __name__ == "__main__":
-    new_board = BoardGenerator.generate_full_board(unique=False, amount_removed=30)
+    new_board = BoardGenerator.generate_full_board(unique=False, amount_to_remove=30)
     new_board.display()
     print("After Solving")
     vars = solver.Variables(new_board)
