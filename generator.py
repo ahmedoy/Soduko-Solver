@@ -21,7 +21,7 @@ class BoardGenerator:
 
         #Fill all the other empty slots using arc consistency and backracking
         vars = solver.Variables(generated_board)
-        solver.AC_3.AC_3(vars)
+        solver.AC_3.AC_3(vars, display=False)
         generated_board.state = solver.Backtracking.Backtracking_Search(vars)
 
         
@@ -36,8 +36,22 @@ class BoardGenerator:
             return generated_board
 
         
+        #Generate Unique Solution
+        amount_removed = min(60, amount_removed) #Prevent more than 60 empty
+        removed_count = 0        
+        while (removed_count < amount_removed) and (len(board_positions) > 0):
+            board_position = board_positions.pop()
+            prev_val = generated_board.get_idx(board_position//9, board_position%9)
+            generated_board.set_idx(board_position//9, board_position%9, 0)
 
-        #TODO Generate a Soduko puzzle with 1 unique solution (if required)
+            #Test if unique
+            vars = solver.Variables(generated_board)
+            solver.AC_3.AC_3(vars, display=False)
+            if solver.Backtracking.Backtracking_Search_CountSolutions(vars) == 1:
+                removed_count += 1
+            else:
+                #Put the value back again
+                generated_board.set_idx(board_position//9, board_position%9, prev_val)
 
 
 
