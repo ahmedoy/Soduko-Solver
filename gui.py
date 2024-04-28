@@ -7,7 +7,9 @@ import tkinter as tk
 from generator import BoardGenerator
 from solver import Variables, AC_3, Backtracking 
 from board import Board
+from time import time
 
+#000000008180002300060057001070960000090704010000081040600240080004500093500000000 valid use case
 # Constants
 WIDTH = 950
 HEIGHT = 680
@@ -70,12 +72,11 @@ def edit_cell(text):
 
     
     elif GUI_INPUT_STATE == "Solving":
-        '''Edit a cell in the board'''
         if ROW != -1 and COLUMN != -1:
             BUTTONS[ROW][COLUMN].config(text=text)
         for i in range(9):
             INPUT_BUTTONS[i].config(bg="#d9d9d9")
-        BUTTONS[ROW][COLUMN].config(highlightthickness=0)
+        BUTTONS[ROW][COLUMN].config(highlightthickness=0, font=("Helvetica", 12, "normal"), fg="blue")
         if type(text) is int:
             game_board.set_idx(COLUMN, ROW, text)
         elif text.isdigit():
@@ -197,10 +198,65 @@ def create_grid_buttons():
 def own_board_generator():
     global GUI_INPUT_STATE
     GUI_INPUT_STATE = "Generating"
+    USER_INP = simpledialog.askstring(title="Board",
+                                  prompt="Enter Your Board Row by Row :)")
+    if USER_INP:
+        if len(USER_INP) != 9*9:
+            messagebox.showinfo("Take Care", "Invalid.The state isn't 9x9")
+
+        elif not is_valid_board(USER_INP):
+            messagebox.showinfo("Take Care", "Invalid Board")
+        
+        elif len(USER_INP) == 9*9 and is_valid_board(USER_INP):
+            initializer(USER_INP)
+            
+
+def is_valid_board(board):
+    # Check each row
+    for i in range(9):
+        row = board[i * 9: (i + 1) * 9]
+        if not is_valid_row(row):
+            return False
+
+    # Check each column
+    for i in range(9):
+        column = [board[j * 9 + i] for j in range(9)]
+        if not is_valid_row(column):
+            return False
+
+    # Check each 3x3 subgrid
+    for i in range(0, 9, 3):
+        for j in range(0, 9, 3):
+            subgrid = [board[x + y * 9] for x in range(3) for y in range(3)]
+            if not is_valid_row(subgrid):
+                return False
+
+    return True
+
+
+def is_valid_row(row):
+    # Check for duplicates
+    #print(type(row))
+    if (type(row) == str):
+        row = ''.join([char for char in row if char != '0'])
+   
+    if (type(row) == list):
+        row = list(filter(lambda x: x != '0', row))
+    
+    if len(row) != len(set(row)):
+        return False
+    
+    return True
+
+
+
 
 def generate_board_randomly(): #AI generates a new board
     global game_board, GUI_INPUT_STATE
-    game_board = BoardGenerator.generate_full_board(unique=False, amount_removed=AMOUNT_REMOVED)
+    start = time()
+    game_board = BoardGenerator.generate_full_board(unique=True, amount_removed=AMOUNT_REMOVED)
+    end = time()
+    print(f"Time taken to generate board in {GUI_DIFFICULTY} level = {end - start}")
     GUI_INPUT_STATE = "Generating"
     initializer(game_board.state)
     GUI_INPUT_STATE = "None"
@@ -216,12 +272,16 @@ def solved_board():
     test_board.state = game_board.state
     test_board.display()
     vars = Variables(test_board)
+    start = time()
     result = AC_3.AC_3(vars)
     if(result == False):
         print("Invalid Input")
         messagebox.showinfo("Invalid Input", "This board has no solution") 
         return
-    result = Backtracking.Backtracking_Search(vars)
+    result = Backtracking.Backtracking_Search(vars) #backtracking used for checking validity of the board and solving it
+    end = time()
+    print(f"Time taken to solve board in {GUI_DIFFICULTY} level = {end - start}")
+
     if(result == False):
         print("Invalid Input")
         messagebox.showinfo("Invalid Input", "This board has no solution")
@@ -248,42 +308,7 @@ def set_difficulty(difficulty):
         mode_2()
 
 
-def mode_1(): #Generated and solved by AI
-    global GUI_INPUT_STATE, MODE, GUI_DIFFICULTY
-    MODE = 1
-    GUI_INPUT_STATE = "None"
-    erase_canvas()
-    create_window()
-    # a row of 3 buttons to choose difficulty
-    if GUI_DIFFICULTY != "NONE":
-        canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
-        canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate", command=generate_board_randomly, bg="#c4bebe", fg="black", width=20))
-    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 300, window=tk.Button(window, text="Easy", command=lambda difficulty="easy": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
-    canvas.create_window(WIDTH- WIDTH//6.5, HEIGHT//3 + 300, window=tk.Button(window, text="Intermediate", command=lambda difficulty="intermediate": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=8))
-    canvas.create_window(WIDTH- WIDTH//20.5, HEIGHT//3 + 300, window=tk.Button(window, text="Hard", command=lambda difficulty="hard": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
-
-
-    
-def mode_2(): #Input by human and solved by AI
-    global GUI_INPUT_STATE, MODE
-    MODE = 2
-    GUI_INPUT_STATE = "Generating"
-    erase_canvas()
-    create_window()
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
-
-    def restart_mode2():
-        global GUI_INPUT_STATE, MODE
-        MODE = 2
-        GUI_INPUT_STATE = "Generating"
-        game_board.restart()
-        initializer(game_board.state)
-
-
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Erase", command=restart_mode2, bg="#c4bebe", fg="black", width=20))
-
-                                        ##################### Interactive ##############################
+                                        ##################### Interactive #####################
 def set_difficulty_interactive(difficulty):
     global GUI_DIFFICULTY, AMOUNT_REMOVED, GUI_INPUT_STATE, game_board
     if difficulty == "easy":
@@ -327,6 +352,43 @@ def solved_board_interactive():
         return
     test_board.state = result
 
+
+def mode_1(): #Generated and solved by AI
+    global GUI_INPUT_STATE, MODE, GUI_DIFFICULTY
+    MODE = 1
+    GUI_INPUT_STATE = "None"
+    erase_canvas()
+    create_window()
+    # a row of 3 buttons to choose difficulty
+    if GUI_DIFFICULTY != "NONE":
+        canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
+        canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate", command=generate_board_randomly, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 300, window=tk.Button(window, text="Easy", command=lambda difficulty="easy": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
+    canvas.create_window(WIDTH- WIDTH//6.5, HEIGHT//3 + 300, window=tk.Button(window, text="Intermediate", command=lambda difficulty="intermediate": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=8))
+    canvas.create_window(WIDTH- WIDTH//20.5, HEIGHT//3 + 300, window=tk.Button(window, text="Hard", command=lambda difficulty="hard": set_difficulty(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
+
+
+    
+def mode_2(): #Input by human and solved by AI
+    global GUI_INPUT_STATE, MODE
+    MODE = 2
+    GUI_INPUT_STATE = "Generating"
+    erase_canvas()
+    create_window()
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Solve", command=solved_board, bg="#c4bebe", fg="black", width=20))
+
+    def restart_mode2():
+        global GUI_INPUT_STATE, MODE
+        MODE = 2
+        GUI_INPUT_STATE = "Generating"
+        game_board.restart()
+        initializer(game_board.state)
+
+
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Erase", command=restart_mode2, bg="#c4bebe", fg="black", width=20))
+
+
     
 def mode_3(): #AI generated or Human input board and solved interactively
     global GUI_INPUT_STATE, MODE
@@ -336,7 +398,7 @@ def mode_3(): #AI generated or Human input board and solved interactively
     create_window()
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Solve", command=solved_board_interactive, bg="#c4bebe", fg="black", width=20))
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate Board Randomly", command=generate_board_randomly_interactive, bg="#c4bebe", fg="black", width=20))
-    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=mode_3, bg="#c4bebe", fg="black", width=20))
+    canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
     
 
 
