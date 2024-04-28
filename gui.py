@@ -8,8 +8,9 @@ from generator import BoardGenerator
 from solver import Variables, AC_3, Backtracking 
 from board import Board
 from time import time
-
+from collections import deque
 #000000008180002300060057001070960000090704010000081040600240080004500093500000000 valid use case
+#516849732307605000809700065135060907472591006968370050253186074684207500791050608 invalid use case
 # Constants
 WIDTH = 950
 HEIGHT = 680
@@ -20,9 +21,11 @@ BG_IMAGE = "Sudoku_bg.png"
 BUTTONS = []
 INPUT_BUTTONS = []
 ROW, COLUMN = -1, -1
+PREV_CELL_STACK = deque()
 AMOUNT_REMOVED = 0
 rows, cols = 9, 9
 BUTTONS = [[0] * cols for _ in range(rows)]
+UNDO_STACK = deque()
 
 INPUT_BUTTONS = [0] * 9
 
@@ -88,7 +91,7 @@ def edit_cell(text):
 
 def initialize_board(initial_state):
     '''Initialize board with numbers of the initial state of the game'''
-    global ROW, COLUMN
+    global ROW, COLUMN, PREV_ROW, PREV_COLUMN
     game_board.state = initial_state
     for i in range(len(initial_state)):
         row = i // 9
@@ -141,6 +144,7 @@ def create_grid():
 def initializer(board_state):
     global ROW, COLUMN
     initialize_board(board_state)
+    print(f"Previous Row = {ROW}, Previous Column = {COLUMN}")
     ROW, COLUMN = -1, -1
 
 def create_window():
@@ -152,7 +156,7 @@ def change_highlights():
 
 def highlight_input_buttons(row, column):
     global ROW 
-    global COLUMN 
+    global COLUMN
     if ROW != row or COLUMN!= column:
         change_highlights()
     ROW = row
@@ -165,19 +169,19 @@ def update_board(idx):
     global show_hint, GUI_INPUT_STATE
     available_values_list = game_board.get_available_values(COLUMN, ROW)
     available_values_grid = available_values_list[3]
-    print(f"Game Board before = {game_board.state}")
     if str(idx) in available_values_grid:
         print("Valid Input")
         show_hint = False
         state = list(game_board.state)
         state[COLUMN * 9 + ROW] = str(idx)
+        UNDO_STACK.append((game_board.state, COLUMN, ROW))
         game_board.state = "".join(state)
         edit_cell(idx)
         show_hint_system()
     else:
         print("Invalid Input")
         messagebox.showinfo("Invalid Input", "This number is not valid for this cell")
-    print(f"Game board After = {game_board.state}")
+
 
 
 def create_input_buttons():
@@ -324,9 +328,9 @@ def set_difficulty_interactive(difficulty):
 def generate_board_randomly_interactive():
     global  GUI_DIFFICULTY, AMOUNT_REMOVED
 
-    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 400, window=tk.Button(window, text="Easy", command=lambda difficulty="easy": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
-    canvas.create_window(WIDTH- WIDTH//6.5, HEIGHT//3 + 400, window=tk.Button(window, text="Intermediate", command=lambda difficulty="intermediate": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=8))
-    canvas.create_window(WIDTH- WIDTH//20.5, HEIGHT//3 + 400, window=tk.Button(window, text="Hard", command=lambda difficulty="hard": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
+    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 370, window=tk.Button(window, text="Easy", command=lambda difficulty="easy": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
+    canvas.create_window(WIDTH- WIDTH//6.5, HEIGHT//3 + 370, window=tk.Button(window, text="Intermediate", command=lambda difficulty="intermediate": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=8))
+    canvas.create_window(WIDTH- WIDTH//20.5, HEIGHT//3 + 370, window=tk.Button(window, text="Hard", command=lambda difficulty="hard": set_difficulty_interactive(difficulty=difficulty), bg="#c4bebe", fg="black", width=5))
 
 
 def solved_board_interactive():
@@ -388,6 +392,17 @@ def mode_2(): #Input by human and solved by AI
 
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Erase", command=restart_mode2, bg="#c4bebe", fg="black", width=20))
 
+def undo():
+    global UNDO_STACK, GUI_INPUT_STATE
+    if len(UNDO_STACK) == 0:
+        messagebox.showinfo("Take Care", "No more undos")
+    else:
+        game_board.state, col, row = UNDO_STACK.pop()
+
+        print(f"Game board after undo = {game_board.state}")
+        initializer(game_board.state)
+        #BUTTONS[PREV_ROW][PREV_COLUMN].config(highlightthickness=0, font=("Helvetica", 12, "normal"), fg="blue", bg="#d9d9d9")
+        GUI_INPUT_STATE = "Solving"
 
     
 def mode_3(): #AI generated or Human input board and solved interactively
@@ -396,6 +411,7 @@ def mode_3(): #AI generated or Human input board and solved interactively
     GUI_INPUT_STATE = "Generating"
     erase_canvas()
     create_window()
+    canvas.create_window(WIDTH- WIDTH//4, HEIGHT//3 + 420, window=tk.Button(window, text="Undo", command=undo, bg="#c4bebe", fg="black", width=5))
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 300, window=tk.Button(window, text="Solve", command=solved_board_interactive, bg="#c4bebe", fg="black", width=20))
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 200, window=tk.Button(window, text="Generate Board Randomly", command=generate_board_randomly_interactive, bg="#c4bebe", fg="black", width=20))
     canvas.create_window(WIDTH- WIDTH//6, HEIGHT//3 + 100, window=tk.Button(window, text="Enter Your Own Board", command=own_board_generator, bg="#c4bebe", fg="black", width=20))
