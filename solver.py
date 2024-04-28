@@ -230,7 +230,8 @@ class Backtracking:
             if consistent_flag:
                 current_variable.partially_assign(current_value)
                 count += Backtracking.Backtrack_CountSolutions(variables, var_idx=var_idx+1) #Move to next variable in Backtracking
-                
+                if count >= 2:
+                    return count
 
         return count
 
